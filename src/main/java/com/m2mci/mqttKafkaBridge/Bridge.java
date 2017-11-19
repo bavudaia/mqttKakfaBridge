@@ -1,5 +1,6 @@
 package com.m2mci.mqttKafkaBridge;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import kafka.message.Message;
@@ -80,6 +81,8 @@ public class Bridge implements MqttCallback {
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		byte[] payload = message.getPayload();
+		System.out.println("Topic : " + topic);
+		System.out.println(Arrays.toString(payload));
 		ProducerRecord<String, Message> data = new ProducerRecord<>(topic, new Message(payload));
 		kafkaProducer.send(data);
 	}
