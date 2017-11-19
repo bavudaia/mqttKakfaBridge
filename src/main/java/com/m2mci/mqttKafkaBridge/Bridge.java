@@ -20,7 +20,7 @@ import org.kohsuke.args4j.CmdLineException;
 public class Bridge implements MqttCallback {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private MqttAsyncClient mqtt;
-	private Producer<String, Message> kafkaProducer;
+	private Producer<String, String> kafkaProducer;
 	
 	private void connect(String serverURI, String clientId, String zkConnect) throws MqttException {
 		mqtt = new MqttAsyncClient(serverURI, clientId);
@@ -34,8 +34,8 @@ public class Bridge implements MqttCallback {
 		 props.put("linger.ms", 1);
 		 props.put("buffer.memory", 33554432);
 		 props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		 props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-		kafkaProducer = new KafkaProducer<String, Message>(props);
+		 props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		kafkaProducer = new KafkaProducer<>(props);
 		token.waitForCompletion();
 		logger.info("Connected to MQTT and Kafka");
 	}
@@ -80,10 +80,11 @@ public class Bridge implements MqttCallback {
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
-		byte[] payload = message.getPayload();
+		String payload = message.toString();
+		System.out.println(payload);
 		//System.out.println("Topic : " + topic);
 		//System.out.println(Arrays.toString(payload));
-		ProducerRecord<String, Message> data = new ProducerRecord<>(topic, new Message(payload));
+		ProducerRecord<String, String> data = new ProducerRecord<>(topic, payload);
 		kafkaProducer.send(data);
 	}
 
@@ -91,7 +92,7 @@ public class Bridge implements MqttCallback {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/*
+		args = new String[]{"--uri", "tcp://test.mosquitto.org:1883", "--topics", "smartchair"};
 		CommandLineParser parser = null;
 		try {
 			parser = new CommandLineParser();
@@ -105,20 +106,5 @@ public class Bridge implements MqttCallback {
 			System.err.println(e.getMessage());
 			parser.printUsage(System.err);
 		}
-		*/
-		ProducerRecord<String, String> data = new ProducerRecord<>("smartchair", "bala","1222");
-		 Properties props = new Properties();
-		 props.put("bootstrap.servers", "localhost:9092");
-		 props.put("acks", "all");
-		 props.put("retries", 100);
-		 props.put("batch.size", 16384);
-		 props.put("linger.ms", 1);
-		 props.put("buffer.memory", 33554432);
-		 props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		 props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		 Producer<String, String> kafkaProducer = new KafkaProducer<>(props);
-		 for(int i=0;i<100;i++)
-			 kafkaProducer.send(data);
-		 kafkaProducer.close();
 	}
 }
