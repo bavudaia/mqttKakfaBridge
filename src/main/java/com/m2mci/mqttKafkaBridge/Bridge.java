@@ -1,9 +1,7 @@
 package com.m2mci.mqttKafkaBridge;
 
-import java.util.Arrays;
 import java.util.Properties;
 
-import kafka.message.Message;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -81,6 +79,7 @@ public class Bridge implements MqttCallback {
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception {
 		String payload = message.toString();
+		payload = payload.substring(0, payload.length()-1) + ",\"time\":" + System.currentTimeMillis() + "}";
 		System.out.println(payload);
 		//System.out.println("Topic : " + topic);
 		//System.out.println(Arrays.toString(payload));
